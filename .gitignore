@@ -4,3 +4,5 @@ clientWallet/*
 .ORCL*
 
 docker-flink
+
+generator_data
