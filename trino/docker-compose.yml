@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  trino:
+    ports:
+      - "8888:8080"
+    image: "trinodb/trino:439"
+    volumes:
+      - ../mnt/trino/catalog:/etc/trino/catalog
+      - ../mnt/trino/etc:/usr/lib/trino/etc:ro
+    networks:
+      - kafka-hadoop
+
+networks:
+  kafka-hadoop:
+    external: true

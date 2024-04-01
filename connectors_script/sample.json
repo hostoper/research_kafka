@@ -1,0 +1,32 @@
+{
+	"after": {
+		"Value": {
+			"ID": 1003,
+			"FIRST_NAME": "Edward",
+			"LAST_NAME": "Walker",
+			"EMAIL": "ed@walker.com"
+		}
+	},
+	"source": {
+		"version": "1.9.7.Final",
+		"connector": "oracle",
+		"name": "test-01",
+		"ts_ms": 1711894551000,
+		"snapshot": {
+			"string": "true"
+		},
+		"db": "ORCLPDB1",
+		"schema": "DEBEZIUM",
+		"table": "CUSTOMERS",
+		"scn": {
+			"string": "2172973"
+		},
+		"ssn": {
+			"int": 0
+		}
+	},
+	"op": "r",
+	"ts_ms": {
+		"long": 1711894556301
+	}
+}

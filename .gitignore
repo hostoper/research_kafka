@@ -1,0 +1,6 @@
+ORCLCDB/*
+dbconfig/*
+clientWallet/*
+.ORCL*
+
+docker-flink

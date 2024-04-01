@@ -1,0 +1,178 @@
+services:
+  oracle:
+    image: oracle/database:19.3.0-ee
+    container_name: oracle
+    ports:
+      - 1521:1521
+      - 5500:5500
+      - 2484:2484
+    environment:
+      - ORACLE_SID=ORCLCDB # SID
+      - ORACLE_PDB=ORCLPDB1 # SERVICE NAME
+      - ORACLE_PWD=top_secret # PASSOWRD
+      - ORACLE_CHARACTERSET=AL32UTF8 
+      - ENABLE_ARCHIVELOG=true
+      - ENABLE_TCPS=true
+    volumes:  
+      - oracledb-19c:/opt/oracle/oradata
+    ulimits:
+      nofile:
+        soft: 1024
+        hard: 65535
+      nproc:
+        soft: 2047
+        hard: 16384
+      stack:
+        soft: 10485760
+        hard: 33554432
+      memlock: 3221225472
+    deploy:
+      resources:
+        limits:
+          cpus: 4
+          memory: 3g
+    networks:
+      - kafka-hadoop
+
+  broker:
+    image: confluentinc/cp-kafka:7.4.1
+    hostname: broker
+    container_name: broker
+    ports:
+      - "9092:9092"
+      - "9101:9101"
+      - "29092:29092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@broker:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://broker:29092,CONTROLLER://broker:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      # Replace CLUSTER_ID with a unique base64 UUID using "bin/kafka-storage.sh random-uuid" 
+      # See https://docs.confluent.io/kafka/operations-tools/kafka-tools.html#kafka-storage-sh
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 2g
+    networks:
+      - kafka-hadoop
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.4.1
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      - broker
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'broker:29092'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1g
+    networks:
+      - kafka-hadoop
+
+  debezium:
+    image: kevinity310/dbz_connect:2.4.2
+    build: .
+    container_name: connect    
+    hostname: connect
+    environment:
+      BOOTSTRAP_SERVERS: broker:29092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: connect_configs
+      OFFSET_STORAGE_TOPIC: connect_offsets
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
+      KEY_CONVERTER: io.confluent.connect.avro.AvroConverter # Must install the Avro converter | https://debezium.io/documentation/reference/stable/configuration/avro.html
+      VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      KAFKA_CONNECT_PLUGINS_DIR: /kafka/connect/
+    # depends_on: [ kafka , zookeeper,schema-registry ]
+    ports:
+      - 8083:8083
+    networks:
+      - kafka-hadoop
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:53a6553765a806eda9905c43bfcfe09da6812035
+    ports:
+      - 8080:8080
+    environment:
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    networks:
+      - kafka-hadoop
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1g
+    # volumes:
+    #   - ./mnt/kui/config.yml:/etc/kafkaui/dynamic_config.yam
+    
+  ksqldb-server:
+    image: confluentinc/ksqldb-server:0.29.0
+    hostname: ksqldb-server
+    container_name: ksqldb-server
+    depends_on:
+      - broker
+    # ports:
+    #   - "8088:8088"
+    environment:
+      KSQL_LISTENERS: http://0.0.0.0:8088
+      KSQL_BOOTSTRAP_SERVERS: broker:29092
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
+      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1g
+    networks:
+      - kafka-hadoop
+
+  ksqldb-cli:
+    image: confluentinc/ksqldb-cli:0.29.0
+    container_name: ksqldb-cli
+    depends_on:
+      - broker
+      - ksqldb-server
+    entrypoint: /bin/sh
+    tty: true
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1g
+    networks:
+      - kafka-hadoop
+
+volumes:
+  oracledb-19c:
+    external: true
+    name: oracledb-19c
+   
+networks:
+  kafka-hadoop:
+    external: true
