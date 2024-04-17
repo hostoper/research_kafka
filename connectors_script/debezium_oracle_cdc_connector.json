@@ -1,17 +1,17 @@
 {
-  "name": "oracle-04",
+  "name": "source_cdc_oracle_04",
   "config": {
     "connector.class": "io.debezium.connector.oracle.OracleConnector",
     "database.hostname": "oracle",
     "database.port": "1521",
     "database.user": "c##dbzuser",
     "database.password": "dbz",
-    "database.server.name": "test-04",
+    "database.server.name": "oracle-test",
     "database.history.kafka.topic": "history",
     "database.dbname": "ORCLCDB",
     "database.connection.adapter": "LogMiner",
     "database.history.kafka.bootstrap.servers": "broker:29092",
-    "table.include.list": "DEBEZIUM.CUSTOMERS",
+    "table.include.list": "DEBEZIUM.TRANSACTIONS",
     "database.schema": "DEBEZIUM",
     "database.pdb.name": "ORCLPDB1",
     "snapshot.mode": "initial",
@@ -20,8 +20,8 @@
     "value.converter": "io.confluent.connect.avro.AvroConverter",
     "key.converter.schema.registry.url": "http://schema-registry:8081",
     "value.converter.schema.registry.url": "http://schema-registry:8081",
-    "topic.prefix": "oracle-4-",
+    "topic.prefix": "oracle-03",
     "schema.history.internal" : "io.debezium.storage.file.history.FileSchemaHistory",
-    "schema.history.internal.file.filename": "/tmp/sample.dat"
+    "schema.history.internal.file.filename": "/tmp/transaction_test.dat"
   }
 }

@@ -6,3 +6,4 @@ clientWallet/*
 docker-flink
 
 generator_data
+generator_data/transaction_data

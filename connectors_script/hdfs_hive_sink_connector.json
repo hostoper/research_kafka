@@ -1,10 +1,10 @@
 {
-  "name": "hdfs3-parquet-field-hive",
+  "name": "hdfs3-parquet-field-hive-01",
   "config": {
       "connector.class": "io.confluent.connect.hdfs3.Hdfs3SinkConnector",
       "tasks.max": "1",
-      "topics": "ORCLCDB.C__MYUSER.BPM_DEPARTMENTS",
-      "hdfs.url": "hdfs://hdfs-namenode:9000/try",
+      "topics": "oracle-02.DEBEZIUM.TRANSACTIONS",
+      "hdfs.url": "hdfs://hdfs-namenode:9000/test",
       "flush.size": "5",
       "key.converter": "org.apache.kafka.connect.storage.StringConverter",
       "value.converter": "io.confluent.connect.avro.AvroConverter",

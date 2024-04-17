@@ -132,7 +132,7 @@ services:
       - "10001:10001"
       - "10002:10002"
     extra_hosts:
-      - "hive-metastore:172.20.0.6" # please change to your hive-metastore container ip
+      - "hive-metastore:172.20.0.11" # please change to your hive-metastore container ip
     depends_on:
       - hive-metastore
     healthcheck:
@@ -168,22 +168,22 @@ services:
   #   env_file:
   #     - ./hadoop-port-dev.env
 
-  zeppelin:
-    image: kevinity310/zeppelin:dev
-    container_name: zeppelin
-    ports:
-      - "9995:9995"
-    environment:
-          SERVICE_PRECONDITION: "hdfs-namenode:9000 hdfs-namenode:9870 hdfs-datanode:9864 yarn-resourcemanager:8088"
-    env_file:
-      - ./hadoop-port-dev.env
-    deploy:
-      resources:
-        limits:
-          cpus: 2
-          memory: 1g
-    networks:
-      - kafka-hadoop
+  # zeppelin:
+  #   image: kevinity310/zeppelin:dev
+  #   container_name: zeppelin
+  #   ports:
+  #     - "9995:9995"
+  #   environment:
+  #         SERVICE_PRECONDITION: "hdfs-namenode:9000 hdfs-namenode:9870 hdfs-datanode:9864 yarn-resourcemanager:8088"
+  #   env_file:
+  #     - ./hadoop-port-dev.env
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: 2
+  #         memory: 1g
+  #   networks:
+  #     - kafka-hadoop
 
 # =============== WORKER =================
 

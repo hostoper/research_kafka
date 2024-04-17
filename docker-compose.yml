@@ -64,7 +64,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: 1
+          cpus: 2
           memory: 2g
     networks:
       - kafka-hadoop
@@ -89,27 +89,53 @@ services:
     networks:
       - kafka-hadoop
 
-  debezium:
-    image: kevinity310/dbz_connect:2.4.2
+  # debezium:
+  #   image: kevinity310/dbz_connect:2.4.2
+  #   build: .
+  #   container_name: connect    
+  #   hostname: connect
+  #   environment:
+  #     BOOTSTRAP_SERVERS: broker:29092
+  #     GROUP_ID: 1
+  #     CONFIG_STORAGE_TOPIC: connect_configs
+  #     OFFSET_STORAGE_TOPIC: connect_offsets
+  #     CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
+  #     CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
+  #     CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
+  #     KEY_CONVERTER: io.confluent.connect.avro.AvroConverter # Must install the Avro converter | https://debezium.io/documentation/reference/stable/configuration/avro.html
+  #     VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+  #     CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+  #     CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+  #     KAFKA_CONNECT_PLUGINS_DIR: /kafka/connect/
+  #   # depends_on: [ kafka , zookeeper,schema-registry ]
+  #   ports:
+  #     - 8083:8083
+  #   networks:
+  #     - kafka-hadoop
+
+  connect:
+    image: kevinity310/confluent_connect:7.6.1
     build: .
-    container_name: connect    
+    container_name: connect
     hostname: connect
     environment:
-      BOOTSTRAP_SERVERS: broker:29092
-      GROUP_ID: 1
-      CONFIG_STORAGE_TOPIC: connect_configs
-      OFFSET_STORAGE_TOPIC: connect_offsets
-      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
-      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
-      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
-      KEY_CONVERTER: io.confluent.connect.avro.AvroConverter # Must install the Avro converter | https://debezium.io/documentation/reference/stable/configuration/avro.html
-      VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
-      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONNECT_BOOTSTRAP_SERVERS: 'broker:29092'
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+      CONNECT_GROUP_ID: compose-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
+      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
-      KAFKA_CONNECT_PLUGINS_DIR: /kafka/connect/
-    # depends_on: [ kafka , zookeeper,schema-registry ]
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+      CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
     ports:
-      - 8083:8083
+      - "8083:8083"
     networks:
       - kafka-hadoop
 
@@ -163,8 +189,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: 1
-          memory: 1g
+          cpus: 2
+          memory: 4g
     networks:
       - kafka-hadoop
 

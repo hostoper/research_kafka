@@ -1,4 +1,4 @@
-- Medium - cdc oracle
+- Medium - Prepare cdc oracle
 https://medium.com/plumbersofdatascience/unlocking-real-time-data-synchronisation-oracle-to-kafka-using-change-data-capture-cdc-fd4687e0c877
 
 - Github 
@@ -18,14 +18,16 @@ https://medium.com/@annick2908.au/using-kafka-connect-for-regular-loading-of-par
 - Connect cdc oracle (Confluent)
 curl -s -X POST -H 'Content-Type: application/json' --data @oracle_cdc_connector.json http://localhost:8083/connectors | jq
 
-- Sink to HDFS (Confluent)
-curl -s -X POST -H 'Content-Type: application/json' --data @hdfs_hive_sink_connector.json http://localhost:8083/connectors | jq
-
 - Create CDC oracle (Debezium) 
-curl -s -X POST -H 'Content-Type: application/json' --data @debezium_oracle_cdc_connector.json http://localhost:8083/connectors | jq
+curl -s -X POST -H 'Content-Type: application/json' --data @connectors_script/debezium_oracle_cdc_connector.json http://localhost:8083/connectors | jq
+
+
+- Sink to HDFS (Confluent)
+curl -s -X POST -H 'Content-Type: application/json' --data @connectors_script/hdfs_hive_sink_connector.json http://localhost:8083/connectors | jq
 
 - Delete Connector
 curl -s -X DELETE http://localhost:8083/connectors/oracle-01
+curl http://localhost:8083/connectors
 
 - Step Running in docker compose :
 1. Create network
